@@ -1,0 +1,25 @@
+@import "tailwindcss";
+
+@theme {
+  --color-brand-green-deep: #1E4D2B;
+  --color-brand-green-accent: #A3C63A;
+  --color-brand-green-nature: #4CAF50;
+  --color-brand-brown-earthy: #8A6E5D;
+  --color-brand-brown-light: #EADDCB;
+  --color-brand-gold-harvest: #E4A201;
+  --color-brand-orange-warm: #D6613F;
+  --color-brand-white-ivory: #F8F4EA;
+  --color-brand-gray-navy: #3F4755;
+  
+  /* Gradients */
+  --bg-gradient-nature: linear-gradient(to right, #1E4D2B, #4CAF50, #E4A201);
+  
+ --font-sans: "Alexandria", sans-serif;
+--font-english: "Inter", sans-serif;
+}
+
+@layer base {
+  body {
+    @apply bg-[#F8F4EA] text-[#3F4755] font-sans;
+  }
+}
