@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'motion/react';
+import Markdown from 'react-markdown';
 import { 
   Palette, 
   Layout, 
@@ -16,7 +17,8 @@ import {
   FileText,
   Volume2,
   Users,
-  Sparkles
+  Sparkles,
+  Loader
 } from 'lucide-react';
 
 const BRAND_COLORS = [
@@ -505,6 +507,65 @@ export default function App() {
   const [scriptFormat, setScriptFormat] = useState('NARRATIVE');
   const [scriptTone, setScriptTone] = useState('EMOTIONAL');
   const [scriptTargetMode, setScriptTargetMode] = useState('PODCAST');
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [generatedScript, setGeneratedScript] = useState<string | null>(null);
+  const [scriptError, setScriptError] = useState<string | null>(null);
+  const [copySuccess, setCopySuccess] = useState(false);
+
+  const handleCopyScript = async () => {
+    if (!generatedScript) return;
+    try {
+      await navigator.clipboard.writeText(generatedScript);
+      setCopySuccess(true);
+      setTimeout(() => setCopySuccess(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy', err);
+    }
+  };
+
+  const handleShareScript = async () => {
+    if (!generatedScript) return;
+    try {
+      if (navigator.share) {
+        await navigator.share({
+          title: 'اسكربت مشروع علّان - ' + scriptFormat,
+          text: generatedScript,
+        });
+      } else {
+        handleCopyScript();
+        alert('تم نسخ الاسكربت إلى الحافظة (لا يدعم المتصفح المشاركة المباشرة)');
+      }
+    } catch (err) {
+      if ((err as Error).name !== 'AbortError') {
+        console.error('Failed to share:', err);
+      }
+    }
+  };
+
+  const handleGenerateScript = async () => {
+    setIsGenerating(true);
+    setScriptError(null);
+    try {
+      const resp = await fetch('/api/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          format: PODCAST_FORMATS.find(f => f.id === scriptFormat)?.name || scriptFormat,
+          tone: PODCAST_TONES.find(t => t.id === scriptTone)?.name || scriptTone,
+          targetMode: CONTENT_LAB.find(c => c.id === scriptTargetMode)?.name || scriptTargetMode
+        })
+      });
+      
+      const data = await resp.json();
+      if (!resp.ok) throw new Error(data.error || 'Failed to generate script. API Error.');
+      
+      setGeneratedScript(data.script);
+    } catch (err) {
+      setScriptError(err instanceof Error ? err.message : 'Unknown error');
+    } finally {
+      setIsGenerating(false);
+    }
+  };
 
   const currentCategory = CONTENT_LAB.find(c => c.id === activeCategory);
 
@@ -742,9 +803,17 @@ export default function App() {
               </div>
 
               <div className="bg-brand-gray-navy p-8 rounded-[2.5rem] text-white space-y-6">
-                 <button className="w-full py-5 bg-brand-green-accent text-brand-green-deep rounded-2xl font-black text-sm uppercase tracking-[0.2em] hover:bg-white transition-all shadow-xl active:scale-95 flex items-center justify-center gap-3">
-                    توليد اسكربت كامل <Sparkles className="w-4 h-4" />
+                 <button 
+                  onClick={handleGenerateScript}
+                  disabled={isGenerating}
+                  className="w-full py-5 bg-brand-green-accent text-brand-green-deep rounded-2xl font-black text-sm uppercase tracking-[0.2em] hover:bg-white transition-all shadow-xl active:scale-95 flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed">
+                    {isGenerating ? 'جاري التوليد بواسطة Gemini...' : 'توليد اسكربت كامل'} {!isGenerating && <Sparkles className="w-4 h-4" />}
                  </button>
+                 {scriptError && (
+                   <div className="bg-red-500/10 text-red-400 p-4 rounded-xl text-xs font-bold border border-red-500/20 text-right" dir="rtl">
+                     {scriptError}
+                   </div>
+                 )}
                  <div className="grid grid-cols-2 gap-4">
                     <div className="p-4 bg-white/5 rounded-2xl border border-white/5">
                        <div className="text-[10px] opacity-40 uppercase mb-1">Duration Est.</div>
@@ -771,8 +840,22 @@ export default function App() {
                         <FadoolLogo mode="PRIMARY" className="scale-50 origin-right" showLabel />
                       </div>
                       <div className="flex gap-2">
-                        <button className="p-2 hover:bg-white rounded-lg transition-all border border-transparent hover:border-black/5"><Copy className="w-4 h-4 opacity-40" /></button>
-                        <button className="p-2 hover:bg-white rounded-lg transition-all border border-transparent hover:border-black/5"><Download className="w-4 h-4 opacity-40" /></button>
+                        <button 
+                          onClick={handleCopyScript}
+                          disabled={!generatedScript}
+                          className="p-2 hover:bg-white rounded-lg transition-all border border-transparent hover:border-black/5 disabled:opacity-30 flex items-center justify-center gap-2"
+                          title="نسخ الاسكربت"
+                        >
+                          {copySuccess ? <CheckCircle2 className="w-4 h-4 text-brand-green-nature" /> : <Copy className="w-4 h-4 opacity-40" />}
+                        </button>
+                        <button 
+                          onClick={handleShareScript}
+                          disabled={!generatedScript}
+                          className="p-2 hover:bg-white rounded-lg transition-all border border-transparent hover:border-black/5 disabled:opacity-30"
+                          title="مشاركة الاسكربت"
+                        >
+                          <Share2 className="w-4 h-4 opacity-40" />
+                        </button>
                       </div>
                     </div>
                     <h2 className="text-4xl font-black text-brand-green-deep mb-2 leading-tight">
@@ -783,9 +866,21 @@ export default function App() {
 
                   {/* Script Content */}
                   <div className="flex-1 p-10 overflow-y-auto max-h-[1200px]" dir="rtl">
-                    <div className="space-y-12">
-                      {/* Hook & Intro */}
-                      <section className="space-y-4">
+                    {isGenerating ? (
+                      <div className="flex flex-col items-center justify-center h-full text-brand-gray-navy/40 gap-4 mt-20">
+                        <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 2, ease: "linear" }}>
+                          <Loader className="w-12 h-12" />
+                        </motion.div>
+                        <p className="font-bold tracking-widest text-sm">يقوم Gemini بصياغة المعنى...</p>
+                      </div>
+                    ) : generatedScript ? (
+                      <div className="markdown-body" dir="rtl">
+                        <Markdown>{generatedScript}</Markdown>
+                      </div>
+                    ) : (
+                      <div className="space-y-12">
+                        {/* Hook & Intro */}
+                        <section className="space-y-4">
                         <div className="flex items-center gap-2 mb-2">
                           <div className="w-1.5 h-1.5 rounded-full bg-brand-green-accent" />
                           <h4 className="text-xs font-black uppercase tracking-widest text-brand-gray-navy/40">الافتتاحية (Intro / Hook)</h4>
@@ -864,6 +959,7 @@ export default function App() {
                          </div>
                       </section>
                     </div>
+                    )}
                   </div>
                </div>
             </div>
