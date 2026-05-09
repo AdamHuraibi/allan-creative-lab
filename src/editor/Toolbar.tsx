@@ -1,5 +1,5 @@
 import React, { useRef, useState } from 'react';
-import { Type, Image as ImageIcon, Download, Trash2, Layout, Square, Smartphone, Monitor, AppWindow, Sparkles } from 'lucide-react';
+import { Type, Image as ImageIcon, Download, Trash2, Layout, Square, Smartphone, Monitor, AppWindow, Sparkles, Image as CropIcon, Frame, Mic } from 'lucide-react';
 import { useEditorStore } from '../store/useEditorStore';
 
 interface ToolbarProps {
@@ -7,9 +7,10 @@ interface ToolbarProps {
   currentModeData?: any;
   modes?: any[];
   onModeChange?: (modeId: string) => void;
+  currentCategory?: any;
 }
 
-export const Toolbar: React.FC<ToolbarProps> = ({ onExport, currentModeData, modes, onModeChange }) => {
+export const Toolbar: React.FC<ToolbarProps> = ({ onExport, currentModeData, modes, onModeChange, currentCategory }) => {
   const { addObject, selectedIds, deleteObject, setCanvasSize } = useEditorStore();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -78,17 +79,6 @@ export const Toolbar: React.FC<ToolbarProps> = ({ onExport, currentModeData, mod
       useEditorStore.getState().clearCanvas();
       setCanvasSize(1080, 1080);
 
-      // Add a background color rectangle or just use the objects
-      // Actually, we can add a huge rect for background color
-      addObject({
-        type: 'shape',
-        x: 0,
-        y: 0,
-        width: 1080,
-        height: 1080,
-        fill: data.themeColor || '#F8F4EA' // the brand ivory
-      });
-
       if (data.texts && Array.isArray(data.texts)) {
         data.texts.forEach((t: any) => {
           addObject({
@@ -112,123 +102,6 @@ export const Toolbar: React.FC<ToolbarProps> = ({ onExport, currentModeData, mod
     }
   };
 
-  const handleTemplate1 = () => {
-    useEditorStore.getState().clearCanvas();
-    setCanvasSize(1080, 1080);
-    
-    addObject({
-      type: 'text',
-      x: 100,
-      y: 80,
-      text: 'حكاية البن',
-      fontSize: 120,
-      fontFamily: 'Alexandria',
-      fontWeight: 'bold',
-      fill: '#1E4D2B',
-      align: 'right',
-    });
-    
-    addObject({
-      type: 'text',
-      x: 100,
-      y: 240,
-      text: 'من أعالي الجبال اليمنية',
-      fontSize: 40,
-      fontFamily: 'Alexandria',
-      fill: '#D6613F',
-      align: 'right',
-    });
-
-    addObject({
-      type: 'text',
-      x: 100,
-      y: 900,
-      text: 'مشروع علّان - الموسم الأول',
-      fontSize: 30,
-      fontFamily: 'Inter',
-      fill: '#3F4755',
-      align: 'right',
-    });
-  };
-
-  const handleTemplate2 = () => {
-    useEditorStore.getState().clearCanvas();
-    setCanvasSize(1080, 1920);
-    
-    addObject({
-      type: 'shape',
-      x: 0,
-      y: 0,
-      width: 1080,
-      height: 1920,
-      fill: currentModeData?.colors?.[0] || '#1E4D2B'
-    });
-
-    addObject({
-      type: 'text',
-      x: 90,
-      y: 300,
-      text: 'أصوات من الطين',
-      fontSize: 100,
-      fontFamily: 'Alexandria',
-      fontWeight: 'bold',
-      fill: currentModeData?.colors?.[1] || '#F8F4EA',
-      align: 'right',
-      width: 900
-    });
-
-    addObject({
-      type: 'text',
-      x: 90,
-      y: 450,
-      text: 'حكايات العمارة الطينية في اليمن',
-      fontSize: 40,
-      fontFamily: 'Alexandria',
-      fill: currentModeData?.colors?.[1] || '#F8F4EA',
-      align: 'right',
-      width: 900
-    });
-  };
-
-  const handleTemplate3 = () => {
-    useEditorStore.getState().clearCanvas();
-    setCanvasSize(1080, 1080);
-    
-    addObject({
-      type: 'shape',
-      x: 0,
-      y: 0,
-      width: 1080,
-      height: 1080,
-      fill: '#F8F4EA' 
-    });
-
-    addObject({
-      type: 'text',
-      x: 100,
-      y: 100,
-      text: 'اقتباس اليوم',
-      fontSize: 30,
-      fontFamily: 'Inter',
-      fill: '#3F4755',
-      align: 'right',
-      width: 880
-    });
-
-    addObject({
-      type: 'text',
-      x: 100,
-      y: 300,
-      text: '"الأرض التي لا نزرعها، لا تزرع فينا الانتماء."',
-      fontSize: 80,
-      fontFamily: 'Alexandria',
-      fontWeight: 'bold',
-      fill: currentModeData?.colors?.[0] || '#1E4D2B',
-      align: 'center',
-      width: 880
-    });
-  };
-
   return (
     <div className="flex flex-col gap-4 bg-white rounded-3xl p-6 shadow-xl border border-black/5" dir="rtl">
       
@@ -245,32 +118,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({ onExport, currentModeData, mod
         </select>
       </div>
 
-      <div className="space-y-3 mb-6 border-b border-black/5 pb-6">
-        <h4 className="text-xs font-black uppercase tracking-widest text-brand-gray-navy/40">القوالب الجاهزة</h4>
-        <div className="flex flex-col gap-2">
-          <button 
-            onClick={handleTemplate1}
-            className="w-full flex items-center justify-center p-3 rounded-xl bg-brand-green-deep text-white hover:bg-brand-green-nature transition-all gap-2 text-xs font-bold shadow-md"
-          >
-            <AppWindow className="h-4 w-4" />
-            بودكاست تراثي
-          </button>
-          <button 
-            onClick={handleTemplate2}
-            className="w-full flex items-center justify-center p-3 rounded-xl bg-brand-gray-navy text-white hover:bg-[#1E4D2B] transition-all gap-2 text-xs font-bold shadow-md"
-          >
-            <AppWindow className="h-4 w-4" />
-            غلاف كتاب / ستوري
-          </button>
-          <button 
-            onClick={handleTemplate3}
-            className="w-full flex items-center justify-center p-3 rounded-xl bg-white border border-brand-gray-navy/20 text-brand-gray-navy hover:bg-gray-50 transition-all gap-2 text-xs font-bold shadow-sm"
-          >
-            <AppWindow className="h-4 w-4" />
-            اقتباس سوشيال
-          </button>
-        </div>
-      </div>
+
 
       <div className="space-y-3 mb-6 border-b border-black/5 pb-6">
         <h4 className="text-xs font-black uppercase tracking-widest text-brand-green-accent">المصمم الذكي (AI)</h4>
@@ -293,7 +141,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({ onExport, currentModeData, mod
         </div>
       </div>
 
-      <div className="space-y-3 mb-6">
+      <div className="space-y-3 mb-6 border-b border-black/5 pb-6">
         <h4 className="text-xs font-black uppercase tracking-widest text-brand-gray-navy/40">الأدوات الأساسية</h4>
         <div className="grid grid-cols-2 gap-2">
           <button 
@@ -322,21 +170,19 @@ export const Toolbar: React.FC<ToolbarProps> = ({ onExport, currentModeData, mod
       </div>
 
       <div className="space-y-3 mb-6">
-        <h4 className="text-xs font-black uppercase tracking-widest text-brand-gray-navy/40">أبعاد اللوحة</h4>
-        <div className="grid grid-cols-3 gap-2">
-          <button onClick={() => setCanvasSize(1080, 1080)} className="flex flex-col items-center p-3 rounded-xl bg-gray-50 hover:bg-gray-100 transition-all gap-2 text-brand-gray-navy border border-black/5">
-             <Square className="h-5 w-5 opacity-60" />
-             <span className="text-[10px] font-bold">مربع</span>
-          </button>
-          <button onClick={() => setCanvasSize(1080, 1920)} className="flex flex-col items-center p-3 rounded-xl bg-gray-50 hover:bg-gray-100 transition-all gap-2 text-brand-gray-navy border border-black/5">
-             <Smartphone className="h-5 w-5 opacity-60" />
-             <span className="text-[10px] font-bold">ستوري</span>
-          </button>
-          <button onClick={() => setCanvasSize(1920, 1080)} className="flex flex-col items-center p-3 rounded-xl bg-gray-50 hover:bg-gray-100 transition-all gap-2 text-brand-gray-navy border border-black/5">
-             <Monitor className="h-5 w-5 opacity-60" />
-             <span className="text-[10px] font-bold">يوتيوب</span>
-          </button>
-        </div>
+        <h4 className="text-xs font-black uppercase tracking-widest text-brand-gray-navy/40">أبعاد اللوحة (سوشيال ميديا)</h4>
+        <select 
+          onChange={(e) => {
+            const [w, h] = e.target.value.split(',').map(Number);
+            setCanvasSize(w, h);
+          }}
+          className="w-full p-3 rounded-xl bg-gray-50 border border-black/5 text-sm font-bold text-brand-gray-navy focus:outline-none focus:border-brand-green-accent cursor-pointer"
+        >
+          <option value="1080,1080">منشور مربع (1:1) - 1080x1080</option>
+          <option value="1080,1350">بورتريه (4:5) - 1080x1350</option>
+          <option value="1080,1920">ستوري / ريلز (9:16) - 1080x1920</option>
+          <option value="1920,1080">غلاف يوتيوب (16:9) - 1920x1080</option>
+        </select>
       </div>
 
       <div className="mt-auto space-y-2">
@@ -355,10 +201,11 @@ export const Toolbar: React.FC<ToolbarProps> = ({ onExport, currentModeData, mod
           className="w-full flex items-center justify-center py-4 bg-brand-green-deep text-white hover:bg-brand-gray-navy rounded-2xl font-black text-sm uppercase tracking-widest transition-all gap-2 shadow-xl"
         >
           <Download className="h-4 w-4" />
-          تصدير التصميم
+          تصدير التصميم (PNG)
         </button>
       </div>
 
     </div>
   );
 };
+

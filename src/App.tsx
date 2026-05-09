@@ -687,6 +687,7 @@ export default function App() {
              currentModeData={MODE_DATA.find(m => m.id === activeMode)} 
              modes={MODE_DATA}
              onModeChange={setActiveMode}
+             currentCategory={currentCategory}
            />
         </main>
       )}

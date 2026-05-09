@@ -7,9 +7,10 @@ interface DesignStudioProps {
   currentModeData?: any;
   modes?: any[];
   onModeChange?: (modeId: string) => void;
+  currentCategory?: any;
 }
 
-export const DesignStudio: React.FC<DesignStudioProps> = ({ currentModeData, modes, onModeChange }) => {
+export const DesignStudio: React.FC<DesignStudioProps> = ({ currentModeData, modes, onModeChange, currentCategory }) => {
   const canvasRef = useRef<any>(null);
 
   const handleExport = () => {
@@ -29,13 +30,13 @@ export const DesignStudio: React.FC<DesignStudioProps> = ({ currentModeData, mod
       
       {/* Sidebar Tools */}
       <div className="w-80 flex flex-col shrink-0 overflow-y-auto">
-        <Toolbar onExport={handleExport} currentModeData={currentModeData} modes={modes} onModeChange={onModeChange} />
+        <Toolbar onExport={handleExport} currentModeData={currentModeData} modes={modes} onModeChange={onModeChange} currentCategory={currentCategory} />
         <PropertiesPanel />
       </div>
 
       {/* Main Canvas Area */}
       <div className="flex-1 bg-white/50 rounded-3xl p-6 border border-black/5 shadow-inner">
-        <CanvasWorkspace canvasRef={canvasRef} />
+        <CanvasWorkspace canvasRef={canvasRef} currentModeData={currentModeData} />
       </div>
 
     </div>

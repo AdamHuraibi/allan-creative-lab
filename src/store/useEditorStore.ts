@@ -46,7 +46,40 @@ export const useEditorStore = create<EditorState>((set) => ({
   selectedIds: [],
   canvasSize: { width: 1080, height: 1080 }, // Default square for instagram etc.
 
-  setCanvasSize: (width, height) => set({ canvasSize: { width, height } }),
+  setCanvasSize: (width, height) => set((state) => {
+    const scaleX = width / state.canvasSize.width;
+    const scaleY = height / state.canvasSize.height;
+    
+    const scaledObjects = state.objects.map(obj => {
+      // For text, we might want to scale it proportionally by minimum scale so it doesn't squish
+      const minScale = Math.min(scaleX, scaleY);
+      
+      let scaledObj = { ...obj };
+      
+      // Scale position relative to center or just multiplier? Let's use simple multiplier
+      scaledObj.x = obj.x * scaleX;
+      scaledObj.y = obj.y * scaleY;
+      
+      if (obj.type === 'shape' || obj.type === 'image') {
+        scaledObj.width = (obj.width || 0) * scaleX;
+        scaledObj.height = (obj.height || 0) * scaleY;
+      }
+      
+      if (obj.type === 'text') {
+         // Keep text proportion
+         scaledObj.fontSize = (obj.fontSize || 20) * minScale;
+         // Text bounding box might need width scaled
+         if (obj.width) scaledObj.width = obj.width * scaleX;
+      }
+
+      return scaledObj;
+    });
+
+    return { 
+      canvasSize: { width, height },
+      objects: scaledObjects
+    };
+  }),
   
   addObject: (obj) => set((state) => ({
     objects: [...state.objects, { ...obj, id: uuidv4() }]
