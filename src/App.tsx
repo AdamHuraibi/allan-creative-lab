@@ -21,6 +21,9 @@ import {
   Loader
 } from 'lucide-react';
 
+import { DesignStudio } from './editor/DesignStudio';
+import { useEditorStore } from './store/useEditorStore';
+
 const BRAND_COLORS = [
   { name: 'أخضر ريفي داكن', en: 'Deep Rural Green', hex: '#1E4D2B', text: 'white', category: 'Primary' },
   { name: 'أخضر حيوي', en: 'Nature Green', hex: '#4CAF50', text: 'white', category: 'Secondary' },
@@ -492,7 +495,7 @@ const ColorCard = ({ color }: any) => {
 };
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState('STUDIO');
+  const [activeTab, setActiveTab] = useState('CANVAS');
   const [activeMode, setActiveMode] = useState('PRIMARY');
   const [activeCategory, setActiveCategory] = useState('SOCIAL');
   const [activeType, setActiveType] = useState('منشور مربع');
@@ -542,6 +545,70 @@ export default function App() {
     }
   };
 
+  const handleEditInStudio = () => {
+    const modeData = MODE_DATA.find(m => m.id === activeMode);
+    const { clearCanvas, setCanvasSize, addObject } = useEditorStore.getState();
+    const isDark = ['HARVEST', 'PODCAST', 'DARK', 'NATURE'].includes(activeMode);
+    
+    clearCanvas();
+    setCanvasSize(1080, 1350); // 4:5 Aspect Ratio
+    
+    // Background layer
+    addObject({
+      type: 'shape',
+      x: 0,
+      y: 0,
+      width: 1080,
+      height: 1350,
+      fill: modeData?.colors?.[0] || '#1E4D2B'
+    });
+
+    const title = activeType === 'بوست قصصي' ? 'حكايا لا تموت..' : 'هوية تنمو من قلب الأرض';
+
+    // Main text
+    addObject({
+      type: 'text',
+      x: 90,
+      y: 400,
+      text: title,
+      fontSize: 100,
+      fontFamily: 'Alexandria',
+      fontWeight: '900',
+      fill: isDark ? '#FFFFFF' : '#1E4D2B',
+      align: 'right',
+      width: 900
+    });
+
+    // Subtitle
+    addObject({
+      type: 'text',
+      x: 90,
+      y: 580,
+      text: 'نصل الماضي بالمستقبل عبر حكايا الأرض والإنسان، بمزيج من الأصالة والحداثة الرقمية.',
+      fontSize: 40,
+      fontFamily: 'Inter',
+      fill: isDark ? 'rgba(255, 255, 255, 0.8)' : 'rgba(63, 71, 85, 0.8)',
+      align: 'right',
+      width: 900
+    });
+
+    // Footer Text
+    addObject({
+      type: 'text',
+      x: 90,
+      y: 1250,
+      text: '@AllanYemen',
+      fontSize: 30,
+      fontFamily: 'Inter',
+      fontWeight: 'bold',
+      fill: isDark ? 'rgba(255, 255, 255, 0.4)' : 'rgba(63, 71, 85, 0.3)',
+      align: 'right',
+      width: 900
+    });
+
+    setActiveTab('CANVAS');
+  };
+
   const handleGenerateScript = async () => {
     setIsGenerating(true);
     setScriptError(null);
@@ -581,10 +648,16 @@ export default function App() {
           </div>
           <div className="flex gap-2">
             <button 
-              onClick={() => setActiveTab('STUDIO')}
-              className={`px-6 py-2 rounded-full text-sm font-bold transition-all ${activeTab === 'STUDIO' ? 'bg-brand-green-deep text-white shadow-lg' : 'hover:bg-gray-100'}`}
+              onClick={() => setActiveTab('CANVAS')}
+              className={`px-6 py-2 rounded-full text-sm font-bold transition-all ${activeTab === 'CANVAS' ? 'bg-brand-green-deep text-white shadow-lg' : 'hover:bg-gray-100'}`}
             >
-              استوديو التصميم
+              محرر التصميم
+            </button>
+            <button 
+              onClick={() => setActiveTab('PREVIEW')}
+              className={`px-6 py-2 rounded-full text-sm font-bold transition-all ${activeTab === 'PREVIEW' ? 'bg-brand-green-deep text-white shadow-lg' : 'hover:bg-gray-100'}`}
+            >
+              نماذج الهوية
             </button>
             <button 
               onClick={() => setActiveTab('BACKGROUND')}
@@ -608,7 +681,17 @@ export default function App() {
         </div>
       </nav>
 
-      {activeTab === 'STUDIO' ? (
+      {activeTab === 'CANVAS' && (
+        <main className="max-w-[1600px] mx-auto px-6 pt-12 animate-in fade-in slide-in-from-bottom-4 duration-700">
+           <DesignStudio 
+             currentModeData={MODE_DATA.find(m => m.id === activeMode)} 
+             modes={MODE_DATA}
+             onModeChange={setActiveMode}
+           />
+        </main>
+      )}
+
+      {activeTab === 'PREVIEW' ? (
         <main className="max-w-7xl mx-auto px-6 pt-12 animate-in fade-in slide-in-from-bottom-4 duration-700">
           <header className="mb-16" dir="rtl">
             <h1 className="text-6xl font-black tracking-tighter text-brand-green-deep mb-4">Content Lab.</h1>
@@ -713,9 +796,18 @@ export default function App() {
                       </div>
                     </div>
 
-                    <button className="w-full mt-12 py-5 bg-brand-green-accent text-brand-green-deep rounded-2xl font-black text-sm uppercase tracking-widest hover:bg-white transition-all shadow-lg active:scale-95">
-                      تصدير المواصفات الفنية
-                    </button>
+                    <div className="flex flex-col gap-3 mt-12">
+                      <button 
+                        onClick={handleEditInStudio}
+                        className="w-full py-5 bg-brand-green-accent text-brand-green-deep rounded-2xl font-black text-sm tracking-widest hover:bg-white transition-all shadow-lg active:scale-95 flex items-center justify-center gap-2"
+                      >
+                        <Layout className="w-5 h-5" />
+                        تعديل هذا التصميم في المحرر
+                      </button>
+                      <button className="w-full py-4 border border-white/20 text-white rounded-2xl font-black text-sm tracking-widest hover:bg-white/10 transition-all active:scale-95">
+                        تصدير المواصفات الفنية
+                      </button>
+                    </div>
                   </div>
 
                   {/* Sub-types selection */}
