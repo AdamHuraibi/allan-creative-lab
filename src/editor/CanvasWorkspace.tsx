@@ -217,13 +217,34 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({ canvasRef, cur
                 );
               }
               if (obj.type === 'image') {
+                const isBg = obj.width === canvasSize.width && obj.height === canvasSize.height && obj.x === 0 && obj.y === 0;
+                let overlayColor = 'transparent';
+                if (currentModeData?.id === 'EARTH') overlayColor = 'rgba(138, 110, 93, 0.4)'; // #8A6E5D
+                else if (currentModeData?.id === 'HARVEST') overlayColor = 'rgba(228, 162, 1, 0.3)'; // #E4A201
+                else if (currentModeData?.id === 'NATURE') overlayColor = 'rgba(30, 77, 43, 0.4)'; // #1E4D2B
+                else if (currentModeData?.id === 'PODCAST') overlayColor = 'rgba(214, 97, 63, 0.4)'; // #D6613F
+                else if (currentModeData?.id === 'DARK') overlayColor = 'rgba(63, 71, 85, 0.6)'; // #3F4755
+                else if (currentModeData?.id === 'PRIMARY') overlayColor = 'rgba(30, 77, 43, 0.2)'; 
+
                 return (
-                  <ImageNode
-                     key={obj.id}
-                     shapeProps={obj}
-                     isSelected={selectedIds.includes(obj.id)}
-                     onSelect={() => selectObject(obj.id)}
-                  />
+                  <React.Fragment key={obj.id}>
+                    <ImageNode
+                       shapeProps={obj}
+                       isSelected={selectedIds.includes(obj.id)}
+                       onSelect={() => selectObject(obj.id)}
+                    />
+                    {isBg && overlayColor !== 'transparent' && (
+                      <Rect
+                        x={0}
+                        y={0}
+                        width={canvasSize.width}
+                        height={canvasSize.height}
+                        fill={overlayColor}
+                        listening={false}
+                        name="bg-overlay"
+                      />
+                    )}
+                  </React.Fragment>
                 );
               }
               if (obj.type === 'shape') {

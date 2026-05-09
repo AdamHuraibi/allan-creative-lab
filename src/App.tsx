@@ -24,6 +24,8 @@ import {
 import { DesignStudio } from './editor/DesignStudio';
 import { useEditorStore } from './store/useEditorStore';
 
+import { ExportableAssetsHub } from './components/ExportableAssetsHub';
+
 const BRAND_COLORS = [
   { name: 'أخضر ريفي داكن', en: 'Deep Rural Green', hex: '#1E4D2B', text: 'white', category: 'Primary' },
   { name: 'أخضر حيوي', en: 'Nature Green', hex: '#4CAF50', text: 'white', category: 'Secondary' },
@@ -1194,122 +1196,9 @@ export default function App() {
             </div>
           </div>
         </main>
-      ) : (
-        <main className="max-w-7xl mx-auto px-6 pt-12 animate-in fade-in duration-700">
-           <header className="mb-16" dir="rtl">
-            <h1 className="text-6xl font-black tracking-tighter text-brand-green-deep mb-4 uppercase">Style Engine.</h1>
-            <p className="text-2xl text-brand-gray-navy/60 max-w-3xl leading-relaxed">
-              حوّل الألوان إلى هوية محتوى متكاملة. نظام ذكاء بصري يحدد القواعد التصميمية والروح الإبداعية لكل منشور.
-            </p>
-          </header>
-
-          <div className="grid lg:grid-cols-12 gap-12">
-            {/* Mode Selection Sidebar */}
-            <div className="lg:col-span-4 space-y-4" dir="rtl">
-              <h3 className="text-xs font-black uppercase tracking-widest text-brand-gray-navy/40 mb-6">اختر نمط الهوية</h3>
-              <div className="grid grid-cols-1 gap-2">
-                {MODE_DATA.map(mode => (
-                  <button
-                    key={mode.id}
-                    onClick={() => setActiveMode(mode.id)}
-                    className={`flex items-center gap-4 p-4 rounded-2xl border-2 transition-all text-right ${activeMode === mode.id ? 'border-brand-green-deep bg-white shadow-xl' : 'border-transparent bg-white/50 hover:bg-white'}`}
-                  >
-                    <div className={`w-12 h-12 rounded-xl shadow-inner ${mode.bg}`} style={{ background: mode.id === 'NATURE' ? 'linear-gradient(135deg, #1E4D2B, #E4A201)' : '' }} />
-                    <div className="flex-1">
-                       <div className="font-black text-lg text-brand-green-deep leading-tight">{mode.name}</div>
-                       <div className="text-[10px] font-bold uppercase opacity-40">{mode.sub}</div>
-                    </div>
-                    {activeMode === mode.id && <CheckCircle2 className="w-5 h-5 text-brand-green-accent" />}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Design Direction & Output */}
-            <div className="lg:col-span-8">
-               <div className="bg-white rounded-[3.5rem] shadow-2xl border border-black/5 overflow-hidden flex flex-col">
-                  {/* Top: Visualization */}
-                  <div className={`p-12 ${MODE_DATA.find(m => m.id === activeMode)?.bg} min-h-[300px] flex items-center justify-center relative shadow-inner`} style={{ background: activeMode === 'NATURE' ? 'linear-gradient(135deg, #1E4D2B, #4CAF50, #E4A201)' : '' }}>
-                      <div className="absolute inset-0 opacity-[0.05] pointer-events-none" style={{ backgroundImage: 'radial-gradient(rgba(0,0,0,0.2) 2px, transparent 2px)', backgroundSize: '40px 40px' }} />
-                      <div className="relative z-10 flex flex-col items-center text-center">
-                         <AllanLogo mode={activeMode} className="scale-150 mb-8" />
-                         <div className={`text-sm font-black px-4 py-1.5 rounded-full backdrop-blur-md border ${['HARVEST', 'NATURE', 'DARK', 'PODCAST'].includes(activeMode) ? 'bg-white/10 text-white border-white/20' : 'bg-black/5 text-brand-green-deep border-black/10'}`}>
-                            IDENTITY SYSTEM ACTIVE
-                         </div>
-                      </div>
-                  </div>
-
-                  {/* Middle: Specs Table */}
-                  <div className="p-10 lg:p-12" dir="rtl">
-                    <div className="grid lg:grid-cols-2 gap-x-12 gap-y-8">
-                       {[
-                         { label: 'نوع المحتوى المقترح', key: 'type', icon: Layout },
-                         { label: 'التوجه البصري', key: 'visual', icon: ImageIcon },
-                         { label: 'النظام التيبوغرافي', key: 'typography', icon: Type },
-                         { label: 'اللغة الجرافيكية', key: 'graphic', icon: Sparkles },
-                         { label: 'نَمط الخلفية', key: 'background', icon: Sun },
-                         { label: 'النبرة العاطفية', key: 'tone', icon: Mic },
-                       ].map(spec => (
-                         <div key={spec.key} className="space-y-2">
-                            <div className="flex items-center gap-2 text-brand-gray-navy/40">
-                               <spec.icon className="w-4 h-4" />
-                               <span className="text-[10px] font-black uppercase tracking-widest">{spec.label}</span>
-                            </div>
-                            <div className="text-sm font-bold text-brand-green-deep leading-relaxed">
-                               {(MODE_DATA.find(m => m.id === activeMode)?.direction as any)[spec.key]}
-                            </div>
-                         </div>
-                       ))}
-                    </div>
-
-                    {/* Headline & Tagline Section */}
-                    <div className="mt-12 pt-10 border-t border-gray-100 grid lg:grid-cols-2 gap-8">
-                       <div className="p-6 bg-brand-green-deep rounded-3xl text-white relative overflow-hidden group">
-                          <div className="absolute -right-4 -top-4 w-24 h-24 bg-white/5 rounded-full blur-2xl group-hover:bg-white/10 transition-all" />
-                          <div className="text-[10px] font-black uppercase tracking-widest opacity-40 mb-3">Suggested Arabic Headline</div>
-                          <div className="text-2xl font-black">{(MODE_DATA.find(m => m.id === activeMode) as any).direction.headline}</div>
-                       </div>
-                       <div className="p-6 bg-brand-gold-harvest rounded-3xl text-brand-green-deep relative overflow-hidden group">
-                          <div className="absolute -right-4 -top-4 w-24 h-24 bg-brand-green-deep/5 rounded-full blur-2xl group-hover:bg-brand-green-deep/10 transition-all" />
-                          <div className="text-[10px] font-black uppercase tracking-widest opacity-40 mb-3">Optional English Tagline</div>
-                          <div className="text-xl font-black italic tracking-tight">{(MODE_DATA.find(m => m.id === activeMode) as any).direction.tagline}</div>
-                       </div>
-                    </div>
-                  </div>
-
-                  {/* Bottom: Color Palette Extraction */}
-                  <div className="bg-gray-50 border-t border-gray-100 p-10 lg:p-12">
-                     <div className="flex items-center justify-between mb-8" dir="rtl">
-                        <h4 className="text-sm font-black text-brand-gray-navy/40 uppercase tracking-widest">مستخلص الألوان (Core Palette)</h4>
-                        <div className="flex gap-2">
-                           <button className="p-2 hover:bg-white rounded-lg transition-all border border-transparent hover:border-black/5"><Share2 className="w-4 h-4 opacity-40" /></button>
-                           <button className="p-2 hover:bg-white rounded-lg transition-all border border-transparent hover:border-black/5"><Download className="w-4 h-4 opacity-40" /></button>
-                        </div>
-                     </div>
-                     <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                        {(MODE_DATA.find(m => m.id === activeMode)?.colors || []).map((hex, i) => {
-                          const name = BRAND_COLORS.find(c => c.hex === hex)?.name || `Color ${i+1}`;
-                          return (
-                            <div key={i} className="bg-white p-3 rounded-2xl border border-black/5 shadow-sm">
-                               <div className="w-full aspect-video rounded-xl mb-3 shadow-inner" style={{ backgroundColor: hex }} />
-                               <div className="text-[10px] font-black text-brand-gray-navy truncate">{name}</div>
-                               <div className="text-[9px] font-mono text-brand-gray-navy/40 mt-1 uppercase">{hex}</div>
-                            </div>
-                          );
-                        })}
-                        {/* Always add primary neutrals to complete palette if context allows */}
-                        <div className="bg-white p-3 rounded-2xl border border-black/5 shadow-sm opacity-50">
-                            <div className="w-full aspect-video rounded-xl mb-3 shadow-inner bg-[#F8F4EA]" />
-                            <div className="text-[10px] font-black text-brand-gray-navy truncate">أبيض عاجي</div>
-                            <div className="text-[9px] font-mono text-brand-gray-navy/40 mt-1 uppercase">#F8F4EA</div>
-                        </div>
-                     </div>
-                  </div>
-               </div>
-            </div>
-          </div>
-        </main>
-      )}
+      ) : activeTab === 'PALETTE' ? (
+        <ExportableAssetsHub MODE_DATA={MODE_DATA} AllanLogo={AllanLogo} FadoolLogo={FadoolLogo} />
+      ) : null}
 
       {/* Action Footer */}
       <footer className="mt-20 pt-10 border-t border-brand-gray-navy/10 px-6 max-w-7xl mx-auto pb-20" dir="rtl">

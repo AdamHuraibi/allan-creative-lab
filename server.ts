@@ -5,6 +5,8 @@ import { fileURLToPath } from "url";
 import generateHandler from "./api/generate.ts";
 import designHandler from "./api/design.ts";
 
+import generateBgHandler from "./api/generate-bg.ts";
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -18,6 +20,7 @@ async function startServer() {
   // API Configuration
   app.post("/api/generate", generateHandler);
   app.post("/api/design", designHandler);
+  app.post("/api/generate-bg", generateBgHandler);
 
   // Vite middleware for development (AI Studio)
   if (process.env.NODE_ENV !== "production") {

@@ -4,13 +4,15 @@ import { useEditorStore } from '../store/useEditorStore';
 
 interface ToolbarProps {
   onExport: () => void;
+  onExportRawBg?: () => void;
+  onExportBrandedBg?: () => void;
   currentModeData?: any;
   modes?: any[];
   onModeChange?: (modeId: string) => void;
   currentCategory?: any;
 }
 
-export const Toolbar: React.FC<ToolbarProps> = ({ onExport, currentModeData, modes, onModeChange, currentCategory }) => {
+export const Toolbar: React.FC<ToolbarProps> = ({ onExport, onExportRawBg, onExportBrandedBg, currentModeData, modes, onModeChange, currentCategory }) => {
   const { addObject, selectedIds, deleteObject, setCanvasSize, reorderObject } = useEditorStore();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -57,6 +59,58 @@ export const Toolbar: React.FC<ToolbarProps> = ({ onExport, currentModeData, mod
 
   const [aiTopic, setAiTopic] = useState('');
   const [isGeneratingAi, setIsGeneratingAi] = useState(false);
+
+  const [bgPrompt, setBgPrompt] = useState('');
+  const [isGeneratingBg, setIsGeneratingBg] = useState(false);
+  const canvasSize = useEditorStore(state => state.canvasSize);
+
+  const handleAiBgGeneration = async () => {
+    if (!bgPrompt) return;
+    setIsGeneratingBg(true);
+    let aspectRatio = '1:1';
+    if (canvasSize.width === 1080 && canvasSize.height === 1350) aspectRatio = '4:5';
+    if (canvasSize.width === 1080 && canvasSize.height === 1920) aspectRatio = '9:16';
+    if (canvasSize.width === 1920 && canvasSize.height === 1080) aspectRatio = '16:9';
+
+    try {
+      const resp = await fetch('/api/generate-bg', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt: bgPrompt, aspectRatio })
+      });
+      const data = await resp.json();
+      if (data.image) {
+        // Find existing background image or add a new one
+        const bgId = useEditorStore.getState().objects.find(o => o.type === 'image' && o.width === canvasSize.width && o.height === canvasSize.height)?.id;
+        if (bgId) {
+           useEditorStore.getState().deleteObject(bgId);
+        }
+        
+        addObject({
+          type: 'image',
+          x: 0,
+          y: 0,
+          src: data.image,
+          width: canvasSize.width,
+          height: canvasSize.height,
+        });
+        
+        // Push background to back
+        const latestObjects = useEditorStore.getState().objects;
+        const newBg = latestObjects[latestObjects.length - 1];
+        if (newBg) {
+           reorderObject(newBg.id, 'back');
+        }
+      } else {
+        alert(data.error || 'حدث خطأ أثناء توليد الخلفية');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('حدث خطأ أثناء التوليد');
+    } finally {
+      setIsGeneratingBg(false);
+    }
+  };
 
   const handleAiGeneration = async () => {
     if (!aiTopic) return;
@@ -121,7 +175,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({ onExport, currentModeData, mod
 
 
       <div className="space-y-3 mb-6 border-b border-black/5 pb-6">
-        <h4 className="text-xs font-black uppercase tracking-widest text-brand-green-accent">المصمم الذكي (AI)</h4>
+        <h4 className="text-xs font-black uppercase tracking-widest text-brand-green-accent">توليد النصوص والمهام (AI)</h4>
         <div className="flex flex-col gap-2">
           <input 
             type="text"
@@ -135,9 +189,48 @@ export const Toolbar: React.FC<ToolbarProps> = ({ onExport, currentModeData, mod
             disabled={isGeneratingAi || !aiTopic}
             className="w-full flex items-center justify-center p-3 rounded-xl bg-[#3F4755] text-white hover:bg-[#1E4D2B] transition-all gap-2 text-xs font-bold disabled:opacity-50"
           >
-            {isGeneratingAi ? 'جاري التصميم...' : 'توليد تصميم أساسي'}
+            {isGeneratingAi ? 'جاري التصميم...' : 'توليد نصوص وتخطيط'}
             {!isGeneratingAi && <Sparkles className="h-4 w-4" />}
           </button>
+        </div>
+      </div>
+
+      <div className="space-y-3 mb-6 border-b border-black/5 pb-6">
+        <h4 className="text-xs font-black uppercase tracking-widest text-brand-green-accent">مولّد الخلفيات الذكي (AI Visuals)</h4>
+        <div className="flex flex-col gap-2">
+          <input 
+            type="text"
+            placeholder="وصف المشهد... (مثال: جبال اليمن وقت الغروب)"
+            value={bgPrompt}
+            onChange={(e) => setBgPrompt(e.target.value)}
+            className="w-full p-3 rounded-xl bg-gray-50 border border-black/5 text-xs focus:outline-none focus:border-brand-green-accent"
+          />
+          <div className="flex gap-2">
+            <button 
+              onClick={() => document.getElementById('ref-image-upload')?.click()}
+              className="flex items-center justify-center p-3 rounded-xl bg-gray-50 border border-black/5 text-gray-400 hover:text-brand-green-deep hover:border-brand-green-accent transition-all shrink-0"
+              title="تضمين صورة مرجعية (Image-to-Image)"
+            >
+              <ImageIcon className="h-4 w-4" />
+              <input 
+                id="ref-image-upload" 
+                type="file" 
+                className="hidden" 
+                accept="image/*" 
+                onChange={(e) => {
+                  if (e.target.files?.[0]) alert('تم تحديد الصورة المرجعية. (في النسخة المتقدمة سيتم إرسالها لـ Stability/DALL-E)');
+                }} 
+              />
+            </button>
+            <button 
+              onClick={handleAiBgGeneration}
+              disabled={isGeneratingBg || !bgPrompt}
+              className="w-full flex items-center justify-center p-3 rounded-xl bg-gradient-to-r from-brand-green-deep to-brand-green-accent text-white hover:opacity-90 transition-all gap-2 text-xs font-bold disabled:opacity-50"
+            >
+              {isGeneratingBg ? 'جاري التوليد...' : 'توليد خلفية ذكية'}
+              {!isGeneratingBg && <Sparkles className="h-4 w-4" />}
+            </button>
+          </div>
         </div>
       </div>
 
@@ -243,13 +336,32 @@ export const Toolbar: React.FC<ToolbarProps> = ({ onExport, currentModeData, mod
             </div>
          )}
 
-        <button 
-          onClick={onExport}
-          className="w-full flex items-center justify-center py-4 bg-brand-green-deep text-white hover:bg-brand-gray-navy rounded-2xl font-black text-sm uppercase tracking-widest transition-all gap-2 shadow-xl"
-        >
-          <Download className="h-4 w-4" />
-          تصدير التصميم (PNG)
-        </button>
+        <div className="flex flex-col gap-2 mt-2">
+          <button 
+            onClick={onExport}
+            className="w-full flex items-center justify-center py-4 bg-brand-green-deep text-white hover:bg-brand-gray-navy rounded-2xl font-black text-sm uppercase tracking-widest transition-all gap-2 shadow-xl"
+          >
+            <Download className="h-4 w-4" />
+            تصدير التصميم (PNG)
+          </button>
+          
+          <div className="grid grid-cols-2 gap-2 mt-2">
+            <button 
+              onClick={onExportBrandedBg}
+              className="w-full flex items-center justify-center py-3 bg-brand-gray-navy text-white hover:bg-brand-green-accent hover:text-brand-gray-navy rounded-xl font-bold text-xs transition-all gap-1 shadow-sm border border-black/5"
+            >
+              <Download className="h-3 w-3" />
+              تصدير كخلفية (هوية)
+            </button>
+            <button 
+              onClick={onExportRawBg}
+              className="w-full flex items-center justify-center py-3 bg-white text-brand-gray-navy hover:bg-gray-100 rounded-xl font-bold text-xs transition-all gap-1 shadow-sm border border-black/5"
+            >
+              <Download className="h-3 w-3" />
+              الخلفية (خام)
+            </button>
+          </div>
+        </div>
       </div>
 
     </div>
