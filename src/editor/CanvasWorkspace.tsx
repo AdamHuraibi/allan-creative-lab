@@ -4,6 +4,7 @@ import { useEditorStore } from '../store/useEditorStore';
 import { TextNode } from './TextNode';
 import { ImageNode } from './ImageNode';
 import { ShapeNode } from './ShapeNode';
+import { BrandNode } from './BrandNode';
 
 interface CanvasWorkspaceProps {
   canvasRef?: React.RefObject<any>;
@@ -97,6 +98,30 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({ canvasRef, cur
     ? { shadowColor: '#BCEE18', shadowBlur: 15, shadowOpacity: 0.6 }
     : {};
 
+  const getBrandColors = () => {
+    switch (currentModeData?.id) {
+      case 'NATURE': return { dark: '#1E4D2B', med: '#4CAF50', light: '#E4A201', text: '#1E4D2B' };
+      case 'EARTH': return { dark: '#5D4037', med: '#8A6E5D', light: '#EADDCB', text: '#5D4037' };
+      case 'HARVEST': return { dark: 'white', med: 'white', light: 'white', text: 'white' };
+      case 'MONO_DARK': return { dark: 'black', med: 'black', light: 'black', text: 'black' };
+      case 'MONO_LIGHT': return { dark: 'white', med: 'white', light: 'white', text: 'white' };
+      case 'DARK': return { dark: '#F8F4EA', med: '#A3C63A', light: '#A3C63A', text: '#F8F4EA' };
+      case 'PODCAST': return { dark: 'white', med: 'white', light: 'white', text: 'white' };
+      case 'CREATIVE': return { dark: '#1E4D2B', med: '#E4A201', light: '#A3C63A', text: '#1E4D2B' };
+      default: return { dark: '#1E4D2B', med: '#A3C63A', light: '#A3C63A', text: '#1E4D2B' };
+    }
+  };
+
+  const getFudoolColors = () => {
+    const isDarkBadge = ['DARK', 'PODCAST', 'HARVEST', 'NATURE'].includes(currentModeData?.id || '');
+    return {
+      bubbleFill: isDarkBadge ? '#FFFFFF' : '#3F4755',
+      textArFill: isDarkBadge ? '#E4A201' : '#E4A201',
+      textEnFill: isDarkBadge ? '#FFFFFF' : '#3F4755',
+      labelFill: isDarkBadge ? 'rgba(255, 255, 255, 0.6)' : 'rgba(63, 71, 85, 0.6)'
+    };
+  };
+
   return (
     <div ref={containerRef} className="w-full h-full flex items-center justify-center bg-gray-100 overflow-hidden rounded-3xl" dir="ltr">
       <div 
@@ -165,6 +190,21 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({ canvasRef, cur
               />
             ) : null}
 
+            {/* Username @AllanYemen */}
+            <Text
+              x={canvasSize.width - 500 - safeMarginX}
+              y={canvasSize.height - safeMarginY - usernameFontSize}
+              width={500}
+              text="@AllanYemen"
+              fontSize={usernameFontSize}
+              fontFamily="Inter"
+              fontWeight={usernameFontWeight}
+              fill={textFill2}
+              align="right"
+              listening={false}
+              letterSpacing={2}
+            />
+
             {objects.map((obj) => {
               if (obj.type === 'text') {
                 return (
@@ -196,150 +236,22 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({ canvasRef, cur
                   />
                 );
               }
+              if (obj.type === 'brand_allan' || obj.type === 'brand_fadool') {
+                return (
+                  <BrandNode
+                     key={obj.id}
+                     shapeProps={obj}
+                     isSelected={selectedIds.includes(obj.id)}
+                     onSelect={() => selectObject(obj.id)}
+                     colors={getBrandColors()}
+                     glowEffects={glowEffects}
+                     fudoolColors={getFudoolColors()}
+                     canvasSize={canvasSize}
+                  />
+                );
+              }
               return null;
             })}
-
-            {/* Static Branding Overlays - Allan */}
-            {(() => {
-              const getColors = () => {
-                switch (currentModeData?.id) {
-                  case 'NATURE': return { dark: '#1E4D2B', med: '#4CAF50', light: '#E4A201', text: '#1E4D2B' };
-                  case 'EARTH': return { dark: '#5D4037', med: '#8A6E5D', light: '#EADDCB', text: '#5D4037' };
-                  case 'HARVEST': return { dark: 'white', med: 'white', light: 'white', text: 'white' };
-                  case 'MONO_DARK': return { dark: 'black', med: 'black', light: 'black', text: 'black' };
-                  case 'MONO_LIGHT': return { dark: 'white', med: 'white', light: 'white', text: 'white' };
-                  case 'DARK': return { dark: '#F8F4EA', med: '#A3C63A', light: '#A3C63A', text: '#F8F4EA' };
-                  case 'PODCAST': return { dark: 'white', med: 'white', light: 'white', text: 'white' };
-                  case 'CREATIVE': return { dark: '#1E4D2B', med: '#E4A201', light: '#A3C63A', text: '#1E4D2B' };
-                  default: return { dark: '#1E4D2B', med: '#A3C63A', light: '#A3C63A', text: '#1E4D2B' };
-                }
-              };
-              const ac = getColors();
-              const logoScale = (allanFontSize * 1.5) / 50; 
-              // align it to the right
-              const totalW = 50 * logoScale + 120 * logoScale; 
-
-              return (
-                <Group 
-                  x={canvasSize.width - safeMarginX - totalW} 
-                  y={safeMarginY}
-                  listening={false}
-                  {...glowEffects}
-                >
-                  <Group x={0} y={0} scaleX={logoScale} scaleY={logoScale}>
-                    {/* Head */}
-                    <Circle x={58} y={18} radius={8} fill={ac.light} />
-                    {/* Upper Leaf (Light/Med) */}
-                    <Path 
-                      data="M58 28C58 28 45 45 45 55C45 65 55 70 70 65C60 65 52 50 78 35C78 35 65 25 58 28Z" 
-                      fill={ac.med} 
-                    />
-                    {/* Lower Leaf (Dark) */}
-                    <Path 
-                      data="M35 50C35 50 25 75 50 85C75 95 85 70 85 70C85 70 65 80 40 68C30 60 35 50 35 50Z" 
-                      fill={ac.dark} 
-                    />
-                  </Group>
-                  <Group x={60 * logoScale} y={2 * logoScale} scaleX={logoScale} scaleY={logoScale}>
-                    <Text
-                      x={0}
-                      y={0}
-                      text="علان"
-                      fontSize={36}
-                      fontFamily="Alexandria"
-                      fontWeight="bold"
-                      fill={ac.dark}
-                      align="right"
-                      width={60}
-                    />
-                    <Text
-                      x={0}
-                      y={40}
-                      text="ALLAN"
-                      fontSize={9}
-                      fontFamily="Inter"
-                      fontWeight="bold"
-                      fill={ac.text}
-                      align="center"
-                      width={60}
-                      letterSpacing={4}
-                    />
-                  </Group>
-                </Group>
-              );
-            })()}
-            
-            {/* Username @AllanYemen */}
-            <Text
-              x={canvasSize.width - 500 - safeMarginX}
-              y={canvasSize.height - safeMarginY - usernameFontSize}
-              width={500}
-              text="@AllanYemen"
-              fontSize={usernameFontSize}
-              fontFamily="Inter"
-              fontWeight={usernameFontWeight}
-              fill={textFill2}
-              align="right"
-              listening={false}
-              letterSpacing={2}
-            />
-
-            {/* Static Branding Overlays - Fadool */}
-            {(() => {
-              const isDarkBadge = ['DARK', 'PODCAST', 'HARVEST', 'NATURE'].includes(currentModeData?.id || '');
-              const bubbleFill = isDarkBadge ? '#FFFFFF' : '#3F4755';
-              const textArFill = isDarkBadge ? '#E4A201' : '#E4A201';
-              const textEnFill = isDarkBadge ? '#FFFFFF' : '#3F4755';
-              const labelFill = isDarkBadge ? 'rgba(255, 255, 255, 0.6)' : 'rgba(63, 71, 85, 0.6)';
-              
-              const logoScale = (fudoolFontSize * 2) / 100;
-              
-              return (
-                <Group
-                  x={safeMarginX}
-                  y={canvasSize.height - safeMarginY - (100 * logoScale) - (fudoolFontSize * 1.2)}
-                  listening={false}
-                >
-                  <Group x={0} y={0} scaleX={logoScale} scaleY={logoScale}>
-                    <Path
-                      data="M10,20 L80,5 L95,65 L78,65 L80,95 L65,65 L10,65 Z"
-                      fill={bubbleFill}
-                    />
-                  </Group>
-                  <Group x={105 * logoScale} y={20 * logoScale} scaleX={logoScale} scaleY={logoScale}>
-                    <Text
-                      x={0}
-                      y={0}
-                      text="فضول بودكاست"
-                      fontSize={32}
-                      fontFamily="Alexandria"
-                      fontWeight="bold"
-                      fill={textArFill}
-                    />
-                    <Text
-                      x={0}
-                      y={40}
-                      text="FADOOL PODCAST"
-                      fontSize={26}
-                      fontFamily="Inter"
-                      fontWeight="bold"
-                      fill={textEnFill}
-                    />
-                  </Group>
-                  
-                  <Text
-                    x={0}
-                    y={110 * logoScale}
-                    text="POWERED & PRODUCED BY FADOOL PODCAST"
-                    fontSize={fudoolFontSize * 0.45}
-                    fontFamily="Inter"
-                    fontWeight="bold"
-                    fill={labelFill}
-                    letterSpacing={fudoolFontSize * 0.1}
-                  />
-                </Group>
-              );
-            })()}
           </Layer>
         </Stage>
       </div>

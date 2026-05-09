@@ -1,5 +1,5 @@
 import React, { useRef, useState } from 'react';
-import { Type, Image as ImageIcon, Download, Trash2, Layout, Square, Smartphone, Monitor, AppWindow, Sparkles, Image as CropIcon, Frame, Mic } from 'lucide-react';
+import { Type, Image as ImageIcon, Download, Trash2, Layout, Square, Smartphone, Monitor, AppWindow, Sparkles, Image as CropIcon, Frame, Mic, ArrowUp, ArrowDown } from 'lucide-react';
 import { useEditorStore } from '../store/useEditorStore';
 
 interface ToolbarProps {
@@ -11,7 +11,7 @@ interface ToolbarProps {
 }
 
 export const Toolbar: React.FC<ToolbarProps> = ({ onExport, currentModeData, modes, onModeChange, currentCategory }) => {
-  const { addObject, selectedIds, deleteObject, setCanvasSize } = useEditorStore();
+  const { addObject, selectedIds, deleteObject, setCanvasSize, reorderObject } = useEditorStore();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleAddText = () => {
@@ -166,6 +166,34 @@ export const Toolbar: React.FC<ToolbarProps> = ({ onExport, currentModeData, mod
               onChange={handleImageUpload}
             />
           </button>
+
+          <button 
+            onClick={() => addObject({
+              type: 'brand_allan',
+              x: 100,
+              y: 100,
+              scaleX: 1,
+              scaleY: 1
+            })}
+            className="flex flex-col items-center justify-center p-4 rounded-2xl bg-gray-50 hover:bg-brand-green-accent/20 hover:text-brand-green-deep transition-all gap-2 text-brand-gray-navy/70 border border-transparent hover:border-brand-green-accent/50 col-span-1"
+          >
+            <Sparkles className="h-6 w-6" />
+            <span className="text-xs font-bold">شعار علّان</span>
+          </button>
+
+          <button 
+            onClick={() => addObject({
+              type: 'brand_fadool',
+              x: 100,
+              y: 200,
+              scaleX: 1,
+              scaleY: 1
+            })}
+            className="flex flex-col items-center justify-center p-4 rounded-2xl bg-gray-50 hover:bg-brand-green-accent/20 hover:text-brand-green-deep transition-all gap-2 text-brand-gray-navy/70 border border-transparent hover:border-brand-green-accent/50 col-span-1"
+          >
+            <Sparkles className="h-6 w-6" />
+            <span className="text-xs font-bold">شعار فضول</span>
+          </button>
         </div>
       </div>
 
@@ -187,13 +215,32 @@ export const Toolbar: React.FC<ToolbarProps> = ({ onExport, currentModeData, mod
 
       <div className="mt-auto space-y-2">
          {selectedIds.length > 0 && (
-            <button 
-              onClick={handleDelete}
-              className="w-full flex items-center justify-center py-4 bg-red-50 text-red-500 hover:bg-red-100 rounded-2xl font-black text-sm transition-all gap-2"
-            >
-              <Trash2 className="h-4 w-4" />
-              حذف العنصر المختار
-            </button>
+            <div className="space-y-2 bg-gray-50 p-4 rounded-3xl border border-black/5">
+              <h4 className="text-xs font-black uppercase tracking-widest text-brand-gray-navy/40 mb-3 text-center">التحكم بالعنصر</h4>
+              <div className="grid grid-cols-2 gap-2">
+                <button 
+                  onClick={() => selectedIds.forEach(id => reorderObject(id, 'front'))}
+                  className="flex items-center justify-center p-3 sm:py-2 sm:px-1 bg-white text-brand-gray-navy hover:bg-brand-green-accent hover:text-brand-green-deep rounded-xl font-bold text-xs transition-all gap-1 shadow-sm border border-black/5 hover:border-transparent"
+                >
+                  <ArrowUp className="h-4 w-4" />
+                  أمام
+                </button>
+                <button 
+                  onClick={() => selectedIds.forEach(id => reorderObject(id, 'back'))}
+                  className="flex items-center justify-center p-3 sm:py-2 sm:px-1 bg-white text-brand-gray-navy hover:bg-brand-green-accent hover:text-brand-green-deep rounded-xl font-bold text-xs transition-all gap-1 shadow-sm border border-black/5 hover:border-transparent"
+                >
+                  <ArrowDown className="h-4 w-4" />
+                  خلف
+                </button>
+              </div>
+              <button 
+                onClick={handleDelete}
+                className="w-full flex items-center justify-center py-3 bg-red-50 text-red-500 hover:bg-red-100 rounded-xl font-black text-xs transition-all gap-2 mt-2"
+              >
+                <Trash2 className="h-4 w-4" />
+                حذف العنصر المختار
+              </button>
+            </div>
          )}
 
         <button 

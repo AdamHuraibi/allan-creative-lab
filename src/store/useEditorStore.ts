@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { v4 as uuidv4 } from 'uuid';
 
-export type ObjectType = 'text' | 'image' | 'shape';
+export type ObjectType = 'text' | 'image' | 'shape' | 'brand_allan' | 'brand_fadool';
 
 export interface CanvasObject {
   id: string;
@@ -39,6 +39,7 @@ interface EditorState {
   selectObject: (id: string | null, multi?: boolean) => void;
   clearSelection: () => void;
   clearCanvas: () => void;
+  reorderObject: (id: string, action: 'front' | 'back' | 'forward' | 'backward') => void;
 }
 
 export const useEditorStore = create<EditorState>((set) => ({
@@ -109,5 +110,25 @@ export const useEditorStore = create<EditorState>((set) => ({
 
   clearSelection: () => set({ selectedIds: [] }),
 
-  clearCanvas: () => set({ objects: [], selectedIds: [] })
+  clearCanvas: () => set({ objects: [], selectedIds: [] }),
+
+  reorderObject: (id, action) => set((state) => {
+    const objects = [...state.objects];
+    const index = objects.findIndex(obj => obj.id === id);
+    if (index === -1) return { objects };
+
+    const [obj] = objects.splice(index, 1);
+
+    if (action === 'front') {
+      objects.push(obj);
+    } else if (action === 'back') {
+      objects.unshift(obj);
+    } else if (action === 'forward') {
+      objects.splice(Math.min(objects.length, index + 1), 0, obj);
+    } else if (action === 'backward') {
+      objects.splice(Math.max(0, index - 1), 0, obj);
+    }
+
+    return { objects };
+  })
 }));
