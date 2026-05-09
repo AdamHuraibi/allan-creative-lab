@@ -94,17 +94,142 @@ const ExportableItem = ({ title, children, showHex, hexCode }: { title: string, 
   );
 };
 
+const PaletteCard = ({ mode }: { mode: any }) => {
+  const cardRef = useRef<HTMLDivElement>(null);
+  const [downloading, setDownloading] = useState(false);
+
+  const handleExportPng = async () => {
+    if (!cardRef.current) return;
+    setDownloading(true);
+    try {
+      const dataUrl = await toPng(cardRef.current, { pixelRatio: 3, cacheBust: true, backgroundColor: '#FFFFFF' });
+      const link = document.createElement('a');
+      link.download = `allan-palette-${mode.id}.png`;
+      link.href = dataUrl;
+      link.click();
+    } catch (err) {
+      console.error('Error exporting Palette PNG:', err);
+    }
+    setDownloading(false);
+  };
+
+  const handleExportJson = () => {
+    const data = {
+      id: mode.id,
+      name: mode.name,
+      sub: mode.sub,
+      colors: mode.colors,
+    };
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `allan-palette-${mode.id}.json`;
+    link.click();
+  };
+
+  return (
+    <div className="flex flex-col gap-4 group">
+      {/* The Printable/Exportable Card */}
+      <div 
+        ref={cardRef} 
+        className="bg-[#F8F4EA] rounded-[2rem] p-8 border border-black/5 shadow-sm relative overflow-hidden"
+      >
+        <div className="absolute top-0 right-0 w-32 h-32 bg-white/40 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none" />
+        
+        <div className="flex justify-between items-start mb-8 relative z-10">
+          <div>
+             <h3 className="text-2xl font-black text-brand-green-deep tracking-tight mb-1">{mode.name}</h3>
+             <p className="text-xs font-bold text-brand-gray-navy/50 tracking-widest uppercase">{mode.id} - {mode.sub}</p>
+          </div>
+          <div className="text-right">
+             <span className="text-[10px] uppercase tracking-widest font-black text-brand-gray-navy/30">Allan Brand System</span>
+          </div>
+        </div>
+
+        <div className="flex gap-2 h-32 relative z-10">
+          {mode.colors.map((color: string, i: number) => {
+             const names = ['الرئيسي', 'الثانوي', 'النص', 'التمييز'];
+             const label = names[i] || `اللون ${i+1}`;
+             return (
+               <div key={i} className="flex-1 flex flex-col gap-2">
+                 <div 
+                   className="w-full flex-1 rounded-2xl shadow-inner border border-black/5"
+                   style={{ backgroundColor: color }}
+                 />
+                 <div className="text-center">
+                   <div className="text-[10px] font-bold text-brand-gray-navy/60 mb-0.5">{label}</div>
+                   <div className="text-[9px] font-mono text-brand-gray-navy font-bold uppercase">{color}</div>
+                 </div>
+               </div>
+             )
+          })}
+        </div>
+      </div>
+
+      {/* Action Buttons */}
+      <div className="flex gap-2 px-2 opacity-0 group-hover:opacity-100 transition-opacity">
+        <button 
+          onClick={handleExportPng}
+          disabled={downloading}
+          className="flex-1 py-3 bg-brand-green-deep text-white rounded-xl text-xs font-black transition-all flex items-center justify-center gap-2 hover:bg-brand-gray-navy"
+        >
+          {downloading ? <CheckCircle2 className="w-4 h-4 text-brand-green-accent" /> : <><Download className="w-4 h-4" /> تحميل لوحة النمط</>}
+        </button>
+        <button 
+          onClick={handleExportJson}
+          className="px-4 py-3 bg-gray-100 text-brand-gray-navy hover:bg-gray-200 rounded-xl text-xs font-black transition-all flex items-center justify-center"
+          title="تحميل كملف JSON للمبرمجين"
+        >
+          <span className="font-mono mt-0.5">JSON</span>
+        </button>
+      </div>
+    </div>
+  );
+};
+
 export const ExportableAssetsHub: React.FC<ExportableAssetsHubProps> = ({ MODE_DATA, AllanLogo, FadoolLogo }) => {
   return (
     <main className="max-w-7xl mx-auto px-6 pt-12 pb-24 animate-in fade-in duration-700 font-sans" dir="rtl">
       <header className="mb-16">
-        <h1 className="text-6xl font-black tracking-tighter text-brand-green-deep mb-4 uppercase">Assets Hub.</h1>
+        <div className="flex justify-between items-end mb-4">
+          <h1 className="text-6xl font-black tracking-tighter text-brand-green-deep uppercase">Assets Hub.</h1>
+          <button 
+            onClick={() => {
+              const cssVars = MODE_DATA.map(mode => `/* ${mode.name} */\n${mode.colors.map((c: string, i: number) => `--color-${mode.id.toLowerCase()}-${i+1}: ${c};`).join('\n')}`).join('\n\n');
+              const blob = new Blob([cssVars], { type: 'text/css' });
+              const link = document.createElement('a');
+              link.href = URL.createObjectURL(blob);
+              link.download = 'allan-colors.css';
+              link.click();
+            }}
+            className="flex items-center gap-2 bg-brand-green-deep text-white px-4 py-2 rounded-xl text-xs font-bold hover:bg-brand-gray-navy transition-all"
+          >
+            <Download className="w-4 h-4" />
+            تصدير ألوان CSS (للمطورين)
+          </button>
+        </div>
         <p className="text-2xl text-brand-gray-navy/60 max-w-3xl leading-relaxed">
           مكتبة الأصول المتكاملة. هنا يمكنك معاينة وتصدير عناصر الهوية بكل الأنماط والألوان بخلفيات شفافة جاهزة للاستخدام.
         </p>
       </header>
 
       <div className="space-y-16">
+        {/* Section 0: Brand Palettes */}
+        <section>
+          <div className="flex items-center gap-4 mb-8">
+            <h2 className="text-3xl font-black text-brand-gray-navy">بطاقات الأنماط (Brand Styles)</h2>
+            <div className="h-[1px] flex-1 bg-gradient-to-l from-brand-gray-navy/10 to-transparent" />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {MODE_DATA.map((mode) => {
+              return (
+                <PaletteCard key={`palette-${mode.id}`} mode={mode} />
+              )
+            })}
+          </div>
+        </section>
+
         {/* Section 1: Logos */}
         <section>
           <div className="flex items-center gap-4 mb-8">

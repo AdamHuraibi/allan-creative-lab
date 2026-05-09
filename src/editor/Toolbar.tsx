@@ -231,6 +231,23 @@ export const Toolbar: React.FC<ToolbarProps> = ({ onExport, onExportRawBg, onExp
               {!isGeneratingBg && <Sparkles className="h-4 w-4" />}
             </button>
           </div>
+          
+          <div className="grid grid-cols-2 gap-2 mt-2">
+            <button 
+              onClick={onExportBrandedBg}
+              className="w-full flex items-center justify-center py-2 bg-brand-gray-navy text-white hover:bg-brand-green-accent hover:text-brand-gray-navy rounded-xl font-bold text-xs transition-all gap-1 shadow-sm border border-black/5"
+            >
+              <Download className="h-3 w-3" />
+              تصدير (هوية)
+            </button>
+            <button 
+              onClick={onExportRawBg}
+              className="w-full flex items-center justify-center py-2 bg-white text-brand-gray-navy hover:bg-gray-100 rounded-xl font-bold text-xs transition-all gap-1 shadow-sm border border-black/5"
+            >
+              <Download className="h-3 w-3" />
+              تصدير (خام)
+            </button>
+          </div>
         </div>
       </div>
 
@@ -344,23 +361,6 @@ export const Toolbar: React.FC<ToolbarProps> = ({ onExport, onExportRawBg, onExp
             <Download className="h-4 w-4" />
             تصدير التصميم (PNG)
           </button>
-          
-          <div className="grid grid-cols-2 gap-2 mt-2">
-            <button 
-              onClick={onExportBrandedBg}
-              className="w-full flex items-center justify-center py-3 bg-brand-gray-navy text-white hover:bg-brand-green-accent hover:text-brand-gray-navy rounded-xl font-bold text-xs transition-all gap-1 shadow-sm border border-black/5"
-            >
-              <Download className="h-3 w-3" />
-              تصدير كخلفية (هوية)
-            </button>
-            <button 
-              onClick={onExportRawBg}
-              className="w-full flex items-center justify-center py-3 bg-white text-brand-gray-navy hover:bg-gray-100 rounded-xl font-bold text-xs transition-all gap-1 shadow-sm border border-black/5"
-            >
-              <Download className="h-3 w-3" />
-              الخلفية (خام)
-            </button>
-          </div>
         </div>
       </div>
 
